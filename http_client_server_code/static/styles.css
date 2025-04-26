@@ -1,0 +1,16 @@
+body {
+  font-family: 'Hachi Maru Pop', Arial, sans-serif;
+  font-size: 16px;
+}
+
+h1 {
+  font-family: 'Georgia', serif;
+  font-size:2em;
+  color: #333;
+}
+
+p {
+  font-family: 'Courier New', monospace;
+  font-size: 1em;
+  color: #666
+}
