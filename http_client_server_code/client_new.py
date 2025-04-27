@@ -45,7 +45,7 @@ def buzzer():
         GPIO.setup(main_buzzer_pin, GPIO.OUT)
         left_pwm = GPIO.PWM(left_buzzer_pin, 500)  # 1kHz
         right_pwm = GPIO.PWM(right_buzzer_pin, 1000)  # 1kHz
-        main_pwm = GPIO.PWM(main_buzzer_pin, 2000)  # 1kHz
+        main_pwm = GPIO.PWM(main_buzzer_pin, 1500)  # 1kHz
 
         # Set up ultrasonic sensor
         uart = serial.Serial("/dev/ttyS0", baudrate=9600, timeout=1) # Need to configure serial port! (Refer to links in IoT tab group)
