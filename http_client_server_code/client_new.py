@@ -33,8 +33,7 @@ if __name__ == '__main__':
             headers = {"Content-Type": "image/jpeg"}  # Indicate JPEG format
             response = requests.post(url, data=image_data, headers=headers)
             print(response)
-            # http_msg(response)
-            time.sleep(3) 
+            time.sleep(1) 
             
             # Update flag to check for new command
             new_response = True
