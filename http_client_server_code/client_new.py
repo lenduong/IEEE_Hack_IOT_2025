@@ -64,6 +64,7 @@ def buzzer():
                 
                 # Check the response status code, if 200 then proceed
                 if response.status_code == 200:
+                        print(message["message2"])
                         if message["message2"] == "left":
                                 left_pwm.start(50)  # 50% duty cycle for sound
                                 time.sleep(0.5)
