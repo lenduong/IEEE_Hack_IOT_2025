@@ -55,7 +55,7 @@ def buzzer():
                                 buzzer_pin = right_buzzer_pin
                         elif message ["message2"] == "middle":
                                 both_buzzer_flag = 1
-                        if both_buzzer_flag = 1:
+                        if both_buzzer_flag == 1:
                                 GPIO.output(left_buzzer_pin, GPIO.HIGH)
                                 GPIO.output(right_buzzer_pin, GPIO.HIGH)
                                 time.sleep(0.5)
