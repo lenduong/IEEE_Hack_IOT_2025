@@ -8,6 +8,6 @@ GPIO.setup(pin, GPIO.OUT)
 pwm = GPIO.PWM(pin, 1000)  # 1kHz
 
 while True:
-  GPIO.output(pin, GPIO.HIGH)
-  time.sleep(0.5)
-  GPIO.output(pin, GPIO.LOW)
+    left_pwm.start(50)  # 50% duty cycle for sound
+    time.sleep(0.5)
+    left_pwm.stop()
