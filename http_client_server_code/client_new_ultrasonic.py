@@ -6,7 +6,7 @@ from gpiozero import PWMOutputDevice
 
 uart = serial.Serial("/dev/ttyS0", baudrate=9600, timeout=1) # Need to configure serial port! (Refer to links in IoT tab group)
 us100 = adafruit_us100.US100(uart)
-buzzer = Buzzer(17) # Represents GPIO17
+buzzer = Buzzer(27) # Represents GPIO17
 # buzzer = PWMOutputDevice(17) # If buzzer is passive
 # buzzer.frequency = 1000  # Sets a 1000 Hz tone
 buzzer.on()
