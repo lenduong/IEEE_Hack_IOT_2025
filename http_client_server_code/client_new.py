@@ -18,6 +18,7 @@ import RPi.GPIO as GPIO
 # This is necessary to initialize the global variable "response" to the correct type.
 #     "response" is used in http_msg() function, which is on a separte thread, and need 
 #     to be initialized as a global variable
+new_response = True
 
 def buzzer():
         # Set the GPIO pin number
@@ -39,7 +40,7 @@ def buzzer():
 
         while True:
                 global new_response
-                if new_response ==True:
+                if new_response == True:
                         global response
                         # ----------------------Process response from server---------------------------
                         # Parse the JSON file
