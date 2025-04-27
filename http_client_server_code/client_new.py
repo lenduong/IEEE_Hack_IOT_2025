@@ -8,7 +8,7 @@ import subprocess
 
 #--------------- Imports for Threading --------------#
 import time
-import threading
+# import threading
 #----------------------------------------------------#
 
 #---------------- Capture and Send the First Image ----------------------#
