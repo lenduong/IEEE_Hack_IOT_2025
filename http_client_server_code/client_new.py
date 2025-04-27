@@ -25,7 +25,7 @@ if __name__ == '__main__':
         while True:
             # Capture the image -----------------------------------
             # Start camera
-            subprocess.run(["raspistill", "-o", "test.jpg"])
+            subprocess.run(["raspistill", "-w", "640", "-h", "480", "-t", "1", "-o", "test.jpg"])
             with open("test.jpg", "rb") as f:
                     image_data = f.read()
             
@@ -33,7 +33,7 @@ if __name__ == '__main__':
             headers = {"Content-Type": "image/jpeg"}  # Indicate JPEG format
             response = requests.post(url, data=image_data, headers=headers)
             print(response)
-            time.sleep(1) 
+            time.sleep(0.1) 
             
             # Update flag to check for new command
             new_response = True
