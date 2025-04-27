@@ -299,5 +299,6 @@ if __name__ == "__main__":
     torch.backends.cudnn.benchmark = True
 
     # compute depth maps
-    run(args.input_path, args.output_path, args.model_weights, args.model_type, args.optimize, args.side, args.height,
+    command = run(args.input_path, args.output_path, args.model_weights, args.model_type, args.optimize, args.side, args.height,
         args.square, args.grayscale)
+    return command
