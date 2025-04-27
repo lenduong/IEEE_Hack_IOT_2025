@@ -22,11 +22,10 @@ new_response = True
 response = None
 
 #---------------------- Function to check for HTTP messages ------------------------#
-def http_msg():
+def http_msg(response):
         while True:
             global new_response
             if new_response ==True:
-                global reponse
                 # ----------------------Process response from server---------------------------
                 # Parse the JSON file
                 # Message1 : image upload confirmation message
@@ -65,7 +64,7 @@ if __name__ == '__main__':
             # Send the image via HTTP POST -----------------------
             headers = {"Content-Type": "image/jpeg"}  # Indicate JPEG format
             response = requests.post(url, data=image_data, headers=headers)
-            http_msg()
+            http_msg(response)
             time.sleep(3) 
             
             # Update flag to check for new command
