@@ -5,26 +5,13 @@ from flask import request
 from flask import render_template
 #-----------------------------------------------------#
 
-#--------- Imports for loading the ML model ----------#
-import numpy as np
-import tensorflow as tf
-import tensorflow.keras as keras
-from PIL import Image
-import matplotlib.pyplot as plt
-#-----------------------------------------------------#
-
 #-------------- Miscellaneous Imports ----------------#
-from PIL import Image
-import argparse
 import json
-from datetime import datetime
-from threading import Lock
 #-----------------------------------------------------#
 
 # ----------------- GLobal Commands ------------------#
 app = Flask('RaspberryPi Mailbox Server') 
 #-----------------------------------------------------#
-
 
 # --------------------------- Code for HTTP Server ----------------------------#
 # Set up home page for web front end
