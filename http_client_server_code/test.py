@@ -1,11 +1,13 @@
 import RPi.GPIO as GPIO
 import time
 
+pin = 22
+
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(27, GPIO.OUT)
+GPIO.setup(pin, GPIO.OUT)
 
 while True:
-  GPIO.output(27, GPIO.HIGH)
+  GPIO.output(pin, GPIO.HIGH)
   time.sleep(0.5)
-  GPIO.output(27, GPIO.LOW)
+  GPIO.output(pin, GPIO.LOW)
   time.sleep(0.5)
