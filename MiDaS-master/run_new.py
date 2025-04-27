@@ -228,6 +228,7 @@ def run(input_path, output_path, model_path, model_type="dpt_beit_large_512", op
                 utils.write_pfm(filename + ".pfm", prediction.astype(np.float32))
 
     print("Finished")
+    return(command)
 
 
 if __name__ == "__main__":
