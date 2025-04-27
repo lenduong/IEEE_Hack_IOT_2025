@@ -24,7 +24,7 @@ import threading
 #     to be initialized as a global variable
 
 # Create url to send to server (using server's IP addr)
-url = "http://172.20.10.8:8080/send_image"
+url = "http://172.20.10.12:8080/send_image"
 
 # Capture the image -----------------------------------
 # Start camera
