@@ -44,6 +44,7 @@ def buzzer():
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(left_buzzer_pin, GPIO.OUT)
         GPIO.setup(right_buzzer_pin, GPIO.OUT)
+        GPIO.setup(main_buzzer_pin, GPIO.OUT)
 
         # Set up ultrasonic sensor
         uart = serial.Serial("/dev/ttyS0", baudrate=9600, timeout=1) # Need to configure serial port! (Refer to links in IoT tab group)
@@ -74,6 +75,7 @@ def buzzer():
                                 time.sleep(0.5)
                                 GPIO.output(left_buzzer_pin, GPIO.LOW)
                                 GPIO.output(right_buzzer_pin, GPIO.LOW)
+                                both_buzzer_flag = 0
                         else:
                                 GPIO.output(buzzer_pin, GPIO.HIGH)
                                 time.sleep(0.5)
