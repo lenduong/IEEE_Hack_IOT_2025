@@ -34,12 +34,14 @@ import argparse
 import json
 from datetime import datetime
 from threading import Lock
+import threading
 #-----------------------------------------------------#
 
 # ----------------- GLobal Commands ------------------#
 app = Flask('RaspberryPi Mailbox Server') 
-loaded_model = keras.models.load_model('handNums_model-1104.h5') # load the trained ML model
-LED_command = False # global flag variable for LED
+# loaded_model = keras.models.load_model('handNums_model-1104.h5') # load the trained ML model
+buzzer_command = "straight" # global flag variable for LED
+command = "straight"
 #-----------------------------------------------------#
 
 # --------------------------- Code for HTTP Server ----------------------------#
@@ -67,11 +69,12 @@ def post_image_callback():
             f.write(image_data)
 
     # Call deploy() to predict the image
-    global buzzer_command
-    buzzer_command = command
-
+    global command
+    
+    run(args.input_path, args.output_path, args.model_weights, args.model_type, args.optimize, args.side, args.height, args.square, args.grayscale)
+    print ("imge processed: ", command)
     # Return a response to client to confirm the request, along with the LED command
-    return jsonify({"message1": f"Image received and saved as {save_path}", "message2":buzzer_command}), 200
+    return jsonify({"message1": f"Image received and saved as {save_path}", "message2":command}), 200
 # -------------------------------------------------------------------------------#
 
 
@@ -207,92 +210,94 @@ def run(input_path, output_path, model_path, model_type="dpt_beit_large_512", op
         os.makedirs(output_path, exist_ok=True)
 
     print("Start processing")
+    global command
     command = 'straight'
     if input_path is not None:
-        while(True):
-            if output_path is None:
-                print("Warning: No output path specified. Images will be processed but not shown or stored anywhere.")
-            for index, image_name in enumerate(image_names):
+        if output_path is None:
+            print("Warning: No output path specified. Images will be processed but not shown or stored anywhere.")
+        for index, image_name in enumerate(image_names):
 
-                print("  Processing {} ({}/{})".format(image_name, index + 1, num_images))
+            print("  Processing {} ({}/{})".format(image_name, index + 1, num_images))
 
-                # input
-                original_image_rgb = utils.read_image(image_name)  # in [0, 1]
-                image = transform({"image": original_image_rgb})["image"]
+            # input
+            original_image_rgb = utils.read_image(image_name)  # in [0, 1]
+            image = transform({"image": original_image_rgb})["image"]
 
-                # compute
-                with torch.no_grad():
-                    prediction = process(device, model, model_type, image, (net_w, net_h), original_image_rgb.shape[1::-1],
-                                        optimize, False)
+            # compute
+            with torch.no_grad():
+                prediction = process(device, model, model_type, image, (net_w, net_h), original_image_rgb.shape[1::-1],
+                                    optimize, False)
+                
+
+            # output
+            if output_path is not None:
+                filename = os.path.join(
+                    output_path, os.path.splitext(os.path.basename(image_name))[0] + '-' + model_type
+                )
+                if not side:
+                    utils.write_depth(filename, prediction, grayscale, bits=2)
+                else:
+                    original_image_bgr = np.flip(original_image_rgb, 2)
+                    grayscale, content = create_side_by_side(original_image_bgr*255, prediction, grayscale=True)
+                    cv2.imwrite(filename + ".png", content)
+                    right_flag = False
+                    left_flag = False
+                    middle_flag = False
+                    for i in range(0,2):
+                        for col in range(0 + (i*320),320 + (i*320)):
+                            for row in range(0, 480):
+                                if grayscale[row][col] > 720:
+                                    if i == 0:
+                                        left_flag = True
+                                    else :
+                                        right_flag = True
+                                        if left_flag and right_flag:
+                                            middle_flag = True
                     
-
-                # output
-                if output_path is not None:
-                    filename = os.path.join(
-                        output_path, os.path.splitext(os.path.basename(image_name))[0] + '-' + model_type
-                    )
-                    if not side:
-                        utils.write_depth(filename, prediction, grayscale, bits=2)
-                    else:
-                        original_image_bgr = np.flip(original_image_rgb, 2)
-                        grayscale, content = create_side_by_side(original_image_bgr*255, prediction, grayscale=True)
-                        cv2.imwrite(filename + ".png", content)
-                        right_flag = False
-                        left_flag = False
-                        middle_flag = False
-                        for i in range(0,2):
-                            for col in range(0 + (i*320),320 + (i*320)):
-                                for row in range(0, 480):
-                                    if grayscale[row][col] > 720:
-                                        if i == 0:
-                                            left_flag = True
-                                        else :
-                                            right_flag = True
-                                            if left_flag and right_flag:
-                                                middle_flag = True
-                        
-                        if middle_flag:
-                            command = "middle"
-                            print("Object detected in the MIDDLE! -------------------")
-                        elif right_flag:
-                            command = "right"
-                            print("Object detected on the RIGHT! >>>>>>>>>>>>>>>>>>>>>>>>")
-                        elif left_flag: 
-                            command = "left"
-                            print("Object detected on the LEFT! <<<<<<<<<<<<<<<<<<<<<<")
-                        else: 
-                            print("No object detected :( ()()()()()()()()()()()()()()")
+                    if middle_flag:
+                        command = "middle"
+                        print("Object detected in the MIDDLE! -------------------")
+                    elif right_flag:
+                        command = "right"
+                        print("Object detected on the RIGHT! >>>>>>>>>>>>>>>>>>>>>>>>")
+                    elif left_flag: 
+                        command = "left"
+                        print("Object detected on the LEFT! <<<<<<<<<<<<<<<<<<<<<<")
+                    else: 
+                        command = "straight"
+                        print("No object detected :( ()()()()()()()()()()()()()()")
 
 
-                        # Create or load an example image (let's make a blank white image)
-                        image = np.ones((500, 500, 3), dtype=np.uint8) * 255  # 500x500 white image
-                        image = content/255
-                        # Define your text
-                        text = command
+                    # Create or load an example image (let's make a blank white image)
+                    image = np.ones((500, 500, 3), dtype=np.uint8) * 255  # 500x500 white image
+                    image = content/255
+                    # Define your text
+                    text = command
 
-                        # Choose the position (x, y) where you want the text
-                        position = (50, 250)  # 50 pixels right, 250 pixels down
+                    # Choose the position (x, y) where you want the text
+                    position = (50, 250)  # 50 pixels right, 250 pixels down
 
-                        # Set font, scale, color, and thickness
-                        font = cv2.FONT_HERSHEY_SIMPLEX
-                        font_scale = 2
-                        color = (0, 0, 0)  # Black color in BGR
-                        thickness = 3
+                    # Set font, scale, color, and thickness
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    font_scale = 2
+                    color = (0, 0, 0)  # Black color in BGR
+                    thickness = 3
 
-                        # Put the text on the image
-                        image_with_text = cv2.putText(image.copy(), text, position, font, font_scale, color, thickness)
+                    # Put the text on the image
+                    image_with_text = cv2.putText(image.copy(), text, position, font, font_scale, color, thickness)
 
-                        # If you want to visualize it
-                        # cv2.imshow('Image with Text', image_with_text)
+                    # If you want to visualize it
+                    # cv2.imshow('Image with Text', image_with_text)
 
-                        # --------------------- Grascale processing 
+                    # --------------------- Grascale processing 
 
-                    utils.write_pfm(filename + ".pfm", prediction.astype(np.float32))
+                utils.write_pfm(filename + ".pfm", prediction.astype(np.float32))
+        
 
 
     else:
         with torch.no_grad():
-            fps = 3
+            fps = 2
             video = VideoStream(0).start()
             time_start = time.time()
             frame_index = 0
@@ -385,10 +390,19 @@ def run(input_path, output_path, model_path, model_type="dpt_beit_large_512", op
         print()
 
     print("Finished")
-    return command
 
+
+# def run_app():
+#     global command
+#     command = run(args.input_path, args.output_path, args.model_weights, args.model_type, args.optimize, args.side, args.height, args.square, args.grayscale)
 
 if __name__ == "__main__":
+     #-------------------- Start a New Thread for led_pot() ------------------#
+    # thread = threading.Thread(target=run_app) # Spawn a thread to run led_pot() in a separate thread 
+    # thread.daemon = True # kill the thread as soon as the main program exit
+    # thread.start() # start the thread executing
+    #------------------------------------------------------------------------#
+    
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-i', '--input_path',
@@ -454,7 +468,11 @@ if __name__ == "__main__":
     # set torch options
     torch.backends.cudnn.enabled = True
     torch.backends.cudnn.benchmark = True
-    global command = run(args.input_path, args.output_path, args.model_weights, args.model_type, args.optimize, args.side, args.height, args.square, args.grayscale)
-    app.run(debug=True, host='0.0.0.0', port=8080) # Begin the server
+    # global command 
+    # while True:
+    app.run(debug=True, host='0.0.0.0', port=2020) # Begin the server
+    
+
+    
 
     
