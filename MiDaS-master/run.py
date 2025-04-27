@@ -90,20 +90,28 @@ def create_side_by_side(image, depth, grayscale):
     depth_min = depth.min()
     depth_max = depth.max()
     normalized_depth = 255 * (depth - depth_min) / (depth_max - depth_min)
+    one_d_depth = normalized_depth
+    print("1st normalized_depth min: ", one_d_depth.min(), "normalized_depth max: ", one_d_depth.max())
+    print("one_d_depth shape: ", one_d_depth.shape)
     normalized_depth *= 3
-
+    # print("2nd normalized_depth min: ", normalized_depth.min(), "normalized_depth max: ", normalized_depth.max())
     right_side = np.repeat(np.expand_dims(normalized_depth, 2), 3, axis=2) / 3
+    # print("3nd normalized_depth min: ", right_side.min(), "normalized_depth max: ", right_side.max())
+    
+
     if not grayscale:
         right_side = cv2.applyColorMap(np.uint8(right_side), cv2.COLORMAP_INFERNO)
 
     if image is None:
-        return right_side
+        return right_side, right_side
     else:
-        return np.concatenate((image, right_side), axis=1)
+        print("--------------- normalized_depth min: ", one_d_depth.min(), "normalized_depth max: ", one_d_depth.max())
+        print("one_d_depth shape: ", one_d_depth.shape)
+        return one_d_depth, np.concatenate((image, right_side), axis=1)
 
 
 def run(input_path, output_path, model_path, model_type="dpt_beit_large_512", optimize=False, side=False, height=None,
-        square=False, grayscale=False):
+        square=False, grayscale=True):
     """Run MonoDepthNN to compute depth maps.
 
     Args:
@@ -169,11 +177,12 @@ def run(input_path, output_path, model_path, model_type="dpt_beit_large_512", op
 
     else:
         with torch.no_grad():
-            fps = 1
+            fps = 3
             video = VideoStream(0).start()
             time_start = time.time()
             frame_index = 0
             while True:
+                command = ''
                 frame = video.read()
                 if frame is not None:
                     original_image_rgb = np.flip(frame, 2)  # in [0, 255] (flip required to get RGB)
@@ -181,13 +190,68 @@ def run(input_path, output_path, model_path, model_type="dpt_beit_large_512", op
 
                     prediction = process(device, model, model_type, image, (net_w, net_h),
                                          original_image_rgb.shape[1::-1], optimize, True)
-                    print("Prediction type: ", type(prediction))
-                    print("Prediction shape (rxc): ", prediction.shape)
-                    print("Prediction : ", prediction)
+                
 
                     original_image_bgr = np.flip(original_image_rgb, 2) if side else None
-                    content = create_side_by_side(original_image_bgr, prediction, grayscale)
-                    cv2.imshow('MiDaS Depth Estimation - Press Escape to close window ', content/255)
+                    grayscale, content = create_side_by_side(original_image_bgr, prediction, grayscale=True)
+                    np.set_printoptions(threshold=np.inf, linewidth=640, suppress=True) 
+                    print("Prediction type: ", type(grayscale))
+                    print("Prediction shape (rxc): ", grayscale.shape)
+                    print("Prediction min: ", grayscale.min(), "Prediction max: ", grayscale.max())
+                    # print(grayscale)
+                    # --------------------- Grascale processing -----------------------
+                    right_flag = False
+                    left_flag = False
+                    middle_flag = False
+                    for i in range(0,2):
+                        for col in range(0 + (i*320),320 + (i*320)):
+                            for row in range(0, 480):
+                                if grayscale[row][col] > 720:
+                                    if i == 0:
+                                        left_flag = True
+                                    else :
+                                        right_flag = True
+                                        if left_flag and right_flag:
+                                            middle_flag = True
+                    
+                    if middle_flag:
+                        command = "middle"
+                        print("Object detected in the MIDDLE! -------------------")
+                    elif right_flag:
+                        command = "right"
+                        print("Object detected on the RIGHT! >>>>>>>>>>>>>>>>>>>>>>>>")
+                    elif left_flag: 
+                        command = "left"
+                        print("Object detected on the LEFT! <<<<<<<<<<<<<<<<<<<<<<")
+                    else: 
+                        print("No object detected :( ()()()()()()()()()()()()()()")
+
+
+                    # Create or load an example image (let's make a blank white image)
+                    image = np.ones((500, 500, 3), dtype=np.uint8) * 255  # 500x500 white image
+                    image = content/255
+                    # Define your text
+                    text = command
+
+                    # Choose the position (x, y) where you want the text
+                    position = (50, 250)  # 50 pixels right, 250 pixels down
+
+                    # Set font, scale, color, and thickness
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    font_scale = 2
+                    color = (0, 0, 0)  # Black color in BGR
+                    thickness = 3
+
+                    # Put the text on the image
+                    image_with_text = cv2.putText(image.copy(), text, position, font, font_scale, color, thickness)
+
+                    # If you want to visualize it
+                    cv2.imshow('Image with Text', image_with_text)
+
+                    # --------------------- Grascale processing -----------------------
+
+
+                    # cv2.imshow('MiDaS Depth Estimation - Press Escape to close window ', content/255)
 
                     if output_path is not None:
                         filename = os.path.join(output_path, 'Camera' + '-' + model_type + '_' + str(frame_index))
