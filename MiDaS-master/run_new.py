@@ -301,4 +301,3 @@ if __name__ == "__main__":
     # compute depth maps
     command = run(args.input_path, args.output_path, args.model_weights, args.model_type, args.optimize, args.side, args.height,
         args.square, args.grayscale)
-    return command
