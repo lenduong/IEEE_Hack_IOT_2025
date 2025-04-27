@@ -19,6 +19,7 @@ import threading
 # Create url to send to server (using server's IP addr)
 url = "http://172.20.10.12:8080/send_image"
 new_response = True
+response = None
 
 #---------------------- Function to check for HTTP messages ------------------------#
 def http_msg():
