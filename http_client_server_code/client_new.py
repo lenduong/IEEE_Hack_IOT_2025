@@ -40,6 +40,9 @@ def buzzer():
 
         # Set the GPIO pin as output
         GPIO.setmode(GPIO.BCM)
+        GPIO.setup(left_buzzer_pin, GPIO.OUT)
+        GPIO.setup(right_buzzer_pin, GPIO.OUT)
+        GPIO.setup(main_buzzer_pin, GPIO.OUT)
         left_pwm = GPIO.PWM(left_buzzer_pin, 1000)  # 1kHz
         right_pwm = GPIO.PWM(right_buzzer_pin, 1000)  # 1kHz
         main_pwm = GPIO.PWM(main_buzzer_pin, 1000)  # 1kHz
