@@ -19,28 +19,28 @@ import threading
 # Create url to send to server (using server's IP addr)
 url = "http://172.20.10.12:8080/send_image"
 new_response = True
-response = None
+# response = None
 
 #---------------------- Function to check for HTTP messages ------------------------#
-def http_msg(response):
-        while True:
-            global new_response
-            if new_response ==True:
-                # ----------------------Process response from server---------------------------
-                # Parse the JSON file
-                # Message1 : image upload confirmation message
-                # Message2 : command to turn on or off light, ouput by ML model
-                message = response.json()
+# def http_msg(response):
+#         while True:
+#             global new_response
+#             if new_response ==True:
+#                 # ----------------------Process response from server---------------------------
+#                 # Parse the JSON file
+#                 # Message1 : image upload confirmation message
+#                 # Message2 : command to turn on or off light, ouput by ML model
+#                 message = response.json()
             
-                # Check the response status code, if 200 then proceed
-                if response.status_code == 200:
-                    print("ooooooooooooooooooooooooooooooooooooooooooo")
-                    print("Image uploaded successfully")
-                    print(message["message1"])
-                    print("ooooooooooooooooooooooooooooooooooooooooooo")
-                else:
-                    print("Error uploading image:", response.status_code)
-                new_response = False
+#                 # Check the response status code, if 200 then proceed
+#                 if response.status_code == 200:
+#                     print("ooooooooooooooooooooooooooooooooooooooooooo")
+#                     print("Image uploaded successfully")
+#                     print(message["message1"])
+#                     print("ooooooooooooooooooooooooooooooooooooooooooo")
+#                 else:
+#                     print("Error uploading image:", response.status_code)
+#                 new_response = False
 #-------------------------------------------------------------------------------------#
             
 
@@ -64,7 +64,7 @@ if __name__ == '__main__':
             # Send the image via HTTP POST -----------------------
             headers = {"Content-Type": "image/jpeg"}  # Indicate JPEG format
             response = requests.post(url, data=image_data, headers=headers)
-            http_msg(response)
+            # http_msg(response)
             time.sleep(3) 
             
             # Update flag to check for new command
