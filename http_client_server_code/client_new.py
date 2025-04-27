@@ -37,14 +37,12 @@ def buzzer():
         left_buzzer_pin = 23
         right_buzzer_pin = 22
         main_buzzer_pin = 27
-        buzzer_pin = left_buzzer_pin
-        both_buzzer_flag = 0
 
         # Set the GPIO pin as output
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(left_buzzer_pin, GPIO.OUT)
-        GPIO.setup(right_buzzer_pin, GPIO.OUT)
-        GPIO.setup(main_buzzer_pin, GPIO.OUT)
+        left_pwm = GPIO.PWM(left_buzzer_pin, 1000)  # 1kHz
+        right_pwm = GPIO.PWM(right_buzzer_pin, 1000)  # 1kHz
+        main_pwm = GPIO.PWM(main_buzzer_pin, 1000)  # 1kHz
 
         # Set up ultrasonic sensor
         uart = serial.Serial("/dev/ttyS0", baudrate=9600, timeout=1) # Need to configure serial port! (Refer to links in IoT tab group)
@@ -64,28 +62,26 @@ def buzzer():
                 # Check the response status code, if 200 then proceed
                 if response.status_code == 200:
                         if message["message2"] == "left":
-                                buzzer_pin = left_buzzer_pin
+                                left_pwm.start(50)  # 50% duty cycle for sound
+                                time.sleep(0.5)
+                                left_pwm.stop()
                         elif message["message2"] == "right":
-                                buzzer_pin = right_buzzer_pin
+                                right_pwm.start(50)  # 50% duty cycle for sound
+                                time.sleep(0.5)
+                                right_pwm.stop()
                         elif message ["message2"] == "middle":
-                                both_buzzer_flag = 1
-                        if both_buzzer_flag == 1:
-                                GPIO.output(left_buzzer_pin, GPIO.HIGH)
-                                GPIO.output(right_buzzer_pin, GPIO.HIGH)
+                                left_pwm.start(50)  # 50% duty cycle for sound
                                 time.sleep(0.5)
-                                GPIO.output(left_buzzer_pin, GPIO.LOW)
-                                GPIO.output(right_buzzer_pin, GPIO.LOW)
-                                both_buzzer_flag = 0
-                        else:
-                                GPIO.output(buzzer_pin, GPIO.HIGH)
+                                left_pwm.stop()
+                                right_pwm.start(50)  # 50% duty cycle for sound
                                 time.sleep(0.5)
-                                GPIO.output(buzzer_pin, GPIO.LOW)
+                                right_pwm.stop()
                         obj_dist = us100.distance
                         print("Distance: ", obj_dist)
                         if obj_dist <= 100:
-                                GPIO.output(main_buzzer_pin, GPIO.HIGH)
+                                main_pwm.start(50)
                                 time.sleep(0.5)
-                                GPIO.output(main_buzzer_pin, GPIO.LOW)
+                                main_pwm.stop()
 
                 else:
                         print("Error uploading image:", response.status_code)
