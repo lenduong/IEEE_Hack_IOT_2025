@@ -17,45 +17,12 @@ import threading
 #     to be initialized as a global variable
 
 # Create url to send to server (using server's IP addr)
-url = "http://172.20.10.12:8080/send_image"
-new_response
-response
-
-#---------------------- Function to check for HTTP messages ------------------------#
-def http_msg():
-        while True:
-            global new_response
-            global response
-            if new_response ==True:
-                # ----------------------Process response from server---------------------------
-                # Parse the JSON file
-                # Message1 : image upload confirmation message
-                # Message2 : command to turn on or off light, ouput by ML model
-                message = response.json()
-            
-                # Check the response status code, if 200 then proceed
-                if response.status_code == 200:
-                    print("ooooooooooooooooooooooooooooooooooooooooooo")
-                    print("Image uploaded successfully")
-                    print(message["message1"])
-                    print("ooooooooooooooooooooooooooooooooooooooooooo")
-                else:
-                    print("Error uploading image:", response.status_code)
-                new_response = False
-#-------------------------------------------------------------------------------------#
-            
+url = "http://172.20.10.12:8080/send_image"        
 
 #----------------------------------- Main --------------------------------------------#
 if __name__ == '__main__':
-        #-------------------- Start a New Thread for led_pot() ------------------#
-        thread = threading.Thread(target=http_msg) # Spawn a thread to run http_msg() in a separate thread 
-        thread.daemon = True # kill the thread as soon as the main program exit
-        thread.start() # start the thread executing
-        #------------------------------------------------------------------------#
-
         #---------------- Capture and Send the First Image ----------------------#
         while True:
-            
             # Capture the image -----------------------------------
             # Start camera
             subprocess.run(["raspistill", "-o", "test.jpg"])
