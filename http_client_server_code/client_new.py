@@ -62,37 +62,37 @@ def buzzer():
                         # Message2 : command left or right, ouput by ML model
                         message = response.json()
                 
-                # Check the response status code, if 200 then proceed
-                if response.status_code == 200:
-                        print(response)
-                        if response["message2"] == "left":
-                                left_pwm.start(50)  # 50% duty cycle for sound
-                                time.sleep(0.5)
-                                left_pwm.stop()
-                        elif response["message2"] == "right":
-                                right_pwm.start(50)  # 50% duty cycle for sound
-                                time.sleep(0.5)
-                                right_pwm.stop()
-                        elif response["message2"] == "middle":
-                                left_pwm.start(50)  # 50% duty cycle for sound
-                                time.sleep(0.5)
-                                left_pwm.stop()
-                                right_pwm.start(50)  # 50% duty cycle for sound
-                                time.sleep(0.5)
-                                right_pwm.stop()
-                        obj_dist = us100.distance
-                        print("Distance: ", obj_dist)
-                        if obj_dist <= 100:
-                                main_pwm.start(50)
-                                time.sleep(0.5)
-                                main_pwm.stop()
+                        # Check the response status code, if 200 then proceed
+                        if response.status_code == 200:
+                                print(response)
+                                if message["message2"] == "left":
+                                        left_pwm.start(50)  # 50% duty cycle for sound
+                                        time.sleep(0.5)
+                                        left_pwm.stop()
+                                elif message["message2"] == "right":
+                                        right_pwm.start(50)  # 50% duty cycle for sound
+                                        time.sleep(0.5)
+                                        right_pwm.stop()
+                                elif message["message2"] == "middle":
+                                        left_pwm.start(50)  # 50% duty cycle for sound
+                                        time.sleep(0.5)
+                                        left_pwm.stop()
+                                        right_pwm.start(50)  # 50% duty cycle for sound
+                                        time.sleep(0.5)
+                                        right_pwm.stop()
+                                obj_dist = us100.distance
+                                print("Distance: ", obj_dist)
+                                if obj_dist <= 100:
+                                        main_pwm.start(50)
+                                        time.sleep(0.5)
+                                        main_pwm.stop()
+                                else:
+                                        time.sleep(0.5)
+        
                         else:
-                                time.sleep(0.5)
-
-                else:
-                        print("Error uploading image:", response.status_code)
-                        
-                new_response = False
+                                print("Error uploading image:", response.status_code)
+                                
+                        new_response = False
 
 
 
