@@ -10,7 +10,6 @@ import time
 
 import numpy as np
 
-from imutils.video import VideoStream
 from midas.model_loader import default_models, load_model
 
 first_execution = True
@@ -227,47 +226,6 @@ def run(input_path, output_path, model_path, model_type="dpt_beit_large_512", op
                     cv2.imshow('Image with Text', image_with_text)
                     cv2.imwrite(filename + ".png", content)
                 utils.write_pfm(filename + ".pfm", prediction.astype(np.float32))
-
-    else:
-        with torch.no_grad():
-            fps = 3
-            video = VideoStream(0).start()
-            time_start = time.time()
-            frame_index = 0
-            while True:
-                command = ''
-                frame = video.read()
-                if frame is not None:
-                    original_image_rgb = np.flip(frame, 2)  # in [0, 255] (flip required to get RGB)
-                    image = transform({"image": original_image_rgb/255})["image"]
-
-                    prediction = process(device, model, model_type, image, (net_w, net_h),
-                                         original_image_rgb.shape[1::-1], optimize, True)
-                
-
-                    original_image_bgr = np.flip(original_image_rgb, 2) if side else None
-                    grayscale, content = create_side_by_side(original_image_bgr, prediction, grayscale=True)
-
-                    # --------------------- Grascale processing -----------------------
-
-
-                    # cv2.imshow('MiDaS Depth Estimation - Press Escape to close window ', content/255)
-
-                    if output_path is not None:
-                        filename = os.path.join(output_path, 'Camera' + '-' + model_type + '_' + str(frame_index))
-                        cv2.imwrite(filename + ".png", content)
-
-                    alpha = 0.1
-                    if time.time()-time_start > 0:
-                        fps = (1 - alpha) * fps + alpha * 1 / (time.time()-time_start)  # exponential moving average
-                        time_start = time.time()
-                    print(f"\rFPS: {round(fps,2)}", end="")
-
-                    if cv2.waitKey(1) == 27:  # Escape key
-                        break
-
-                    frame_index += 1
-        print()
 
     print("Finished")
 
