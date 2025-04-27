@@ -32,7 +32,7 @@ def post_image_callback():
     save_path = f'uploads/test_image.jpg'
     with open(save_path, "wb") as f:
             f.write(image_data)
-    subprocess.Popen(["python3", "/IEEE_Hack_IOT_2025/MiDaS-master/run.py", "-i", "./uploads/"])
+    subprocess.Popen(["python3", "../MiDaS-master/run.py", "-i", "./uploads/"])
 
     # Return a response to client to confirm the request
     return jsonify({"message1": f"Image received and saved as {save_path}"}), 200
