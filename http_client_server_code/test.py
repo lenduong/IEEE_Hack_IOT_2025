@@ -6,5 +6,6 @@ GPIO.setup(27, GPIO.OUT)
 
 while True:
   GPIO.output(27, GPIO.HIGH)
-  time.sleep(2)
+  time.sleep(0.5)
   GPIO.output(27, GPIO.LOW)
+  time.sleep(0.5)
