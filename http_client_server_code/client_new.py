@@ -19,20 +19,6 @@ import threading
 # Create url to send to server (using server's IP addr)
 url = "http://172.20.10.12:8080/send_image"
 
-# Capture the image -----------------------------------
-# Start camera
-subprocess.run(["raspistill", "-o", "test.jpg"])
-
-# Send the image via HTTP POST -----------------------
-headers = {"Content-Type": "image/jpeg"}  # Indicate JPEG format
-response = requests.post(url, data=buffer.tobytes(), headers=headers)
-time.sleep(3) 
-
-# Update flag to check for new command
-new_response = True
-#-----------------------------------------------------------------------------------------#
-
-
 #---------------------- Function to check for HTTP messages ------------------------#
 def http_msg():
         while True:
@@ -67,8 +53,6 @@ if __name__ == '__main__':
 
         #---------------- Capture and Send the First Image ----------------------#
         while True:
-            # Create url to send to server (using server's IP addr)
-            url = "http://172.20.10.12:8080/send_image"
             
             # Capture the image -----------------------------------
             # Start camera
@@ -79,6 +63,7 @@ if __name__ == '__main__':
             # Send the image via HTTP POST -----------------------
             headers = {"Content-Type": "image/jpeg"}  # Indicate JPEG format
             response = requests.post(url, data=image_data, headers=headers)
+            http_msg()
             time.sleep(3) 
             
             # Update flag to check for new command
