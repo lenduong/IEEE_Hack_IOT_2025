@@ -12,7 +12,7 @@ while True:
   print("Distance: ", obj_dist)
   time.sleep(0.5)
   if obj_dist < 100:
-    buzzer.beep()
+    Buzzer.on()
   if obj_dist > 100:
-    buzzer.off()
+    Buzzer.off()
     
