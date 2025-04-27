@@ -13,11 +13,12 @@ import threading
 
 #---------------- Capture and Send the First Image ----------------------#
 # This is necessary to initialize the global variable "response" to the correct type.
-#     "response" is used in led_pot() function, which is on a separte thread, and need 
+#     "response" is used in http_msg() function, which is on a separte thread, and need 
 #     to be initialized as a global variable
 
 # Create url to send to server (using server's IP addr)
 url = "http://172.20.10.12:8080/send_image"
+new_response = True
 
 #---------------------- Function to check for HTTP messages ------------------------#
 def http_msg():
