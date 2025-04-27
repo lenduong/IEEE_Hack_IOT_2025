@@ -147,33 +147,86 @@ def run(input_path, output_path, model_path, model_type="dpt_beit_large_512", op
     print("Start processing")
 
     if input_path is not None:
-        if output_path is None:
-            print("Warning: No output path specified. Images will be processed but not shown or stored anywhere.")
-        for index, image_name in enumerate(image_names):
+        while(True):
+            if output_path is None:
+                print("Warning: No output path specified. Images will be processed but not shown or stored anywhere.")
+            for index, image_name in enumerate(image_names):
 
-            print("  Processing {} ({}/{})".format(image_name, index + 1, num_images))
+                print("  Processing {} ({}/{})".format(image_name, index + 1, num_images))
 
-            # input
-            original_image_rgb = utils.read_image(image_name)  # in [0, 1]
-            image = transform({"image": original_image_rgb})["image"]
+                # input
+                original_image_rgb = utils.read_image(image_name)  # in [0, 1]
+                image = transform({"image": original_image_rgb})["image"]
 
-            # compute
-            with torch.no_grad():
-                prediction = process(device, model, model_type, image, (net_w, net_h), original_image_rgb.shape[1::-1],
-                                     optimize, False)
+                # compute
+                with torch.no_grad():
+                    prediction = process(device, model, model_type, image, (net_w, net_h), original_image_rgb.shape[1::-1],
+                                        optimize, False)
+                    
 
-            # output
-            if output_path is not None:
-                filename = os.path.join(
-                    output_path, os.path.splitext(os.path.basename(image_name))[0] + '-' + model_type
-                )
-                if not side:
-                    utils.write_depth(filename, prediction, grayscale, bits=2)
-                else:
-                    original_image_bgr = np.flip(original_image_rgb, 2)
-                    content = create_side_by_side(original_image_bgr*255, prediction, grayscale)
-                    cv2.imwrite(filename + ".png", content)
-                utils.write_pfm(filename + ".pfm", prediction.astype(np.float32))
+                # output
+                if output_path is not None:
+                    filename = os.path.join(
+                        output_path, os.path.splitext(os.path.basename(image_name))[0] + '-' + model_type
+                    )
+                    if not side:
+                        utils.write_depth(filename, prediction, grayscale, bits=2)
+                    else:
+                        original_image_bgr = np.flip(original_image_rgb, 2)
+                        grayscale, content = create_side_by_side(original_image_bgr*255, prediction, grayscale=True)
+                        cv2.imwrite(filename + ".png", content)
+                        right_flag = False
+                        left_flag = False
+                        middle_flag = False
+                        for i in range(0,2):
+                            for col in range(0 + (i*320),320 + (i*320)):
+                                for row in range(0, 480):
+                                    if grayscale[row][col] > 720:
+                                        if i == 0:
+                                            left_flag = True
+                                        else :
+                                            right_flag = True
+                                            if left_flag and right_flag:
+                                                middle_flag = True
+                        
+                        if middle_flag:
+                            command = "middle"
+                            print("Object detected in the MIDDLE! -------------------")
+                        elif right_flag:
+                            command = "right"
+                            print("Object detected on the RIGHT! >>>>>>>>>>>>>>>>>>>>>>>>")
+                        elif left_flag: 
+                            command = "left"
+                            print("Object detected on the LEFT! <<<<<<<<<<<<<<<<<<<<<<")
+                        else: 
+                            print("No object detected :( ()()()()()()()()()()()()()()")
+
+
+                        # Create or load an example image (let's make a blank white image)
+                        image = np.ones((500, 500, 3), dtype=np.uint8) * 255  # 500x500 white image
+                        image = content/255
+                        # Define your text
+                        text = command
+
+                        # Choose the position (x, y) where you want the text
+                        position = (50, 250)  # 50 pixels right, 250 pixels down
+
+                        # Set font, scale, color, and thickness
+                        font = cv2.FONT_HERSHEY_SIMPLEX
+                        font_scale = 2
+                        color = (0, 0, 0)  # Black color in BGR
+                        thickness = 3
+
+                        # Put the text on the image
+                        image_with_text = cv2.putText(image.copy(), text, position, font, font_scale, color, thickness)
+
+                        # If you want to visualize it
+                        # cv2.imshow('Image with Text', image_with_text)
+
+                        # --------------------- Grascale processing 
+
+                    utils.write_pfm(filename + ".pfm", prediction.astype(np.float32))
+
 
     else:
         with torch.no_grad():

@@ -192,3 +192,24 @@ if __name__ == '__main__':
 #-------------------------------------------------------------------------------------#
 
         
+def buzzer():
+        # Set the GPIO pin number
+        buzzer_pin = 23
+
+        # Set the GPIO pin as output
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(buzzer_pin, GPIO.OUT)
+        while True:
+                GPIO.output(buzzer_pin, GPIO.HIGH) # Turn buzzer on
+                time.sleep(1)
+                GPIO.output(buzzer_pin, GPIO.LOW) # Turn buzzer off
+                time.sleep(1)
+
+ #-------------------- Start a New Thread for led_pot() ------------------#
+        thread = threading.Thread(target=buzzer) # Spawn a thread to run led_pot() in a separate thread 
+        thread.daemon = True # kill the thread as soon as the main program exit
+        thread.start() # start the thread executing
+        #------------------------------------------------------------------------#
+import RPi.GPIO as GPIO
+import time
+
