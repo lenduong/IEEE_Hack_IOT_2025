@@ -11,8 +11,8 @@ while True:
   obj_dist = us100.distance
   print("Distance: ", obj_dist)
   time.sleep(0.5)
-  if distance < 100:
+  if obj_dist < 100:
     buzzer.beep()
-  if distance > 100:
+  if obj_dist > 100:
     buzzer.off()
     
