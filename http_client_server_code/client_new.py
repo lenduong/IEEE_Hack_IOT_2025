@@ -10,8 +10,9 @@ import subprocess
 import time
 import threading
 #----------------------------------------------------#
+import serial
+import adafruit_us100
 import RPi.GPIO as GPIO
-import time
 
 #---------------- Capture and Send the First Image ----------------------#
 # This is necessary to initialize the global variable "response" to the correct type.
@@ -22,65 +23,58 @@ def buzzer():
         # Set the GPIO pin number
         left_buzzer_pin = 23
         right_buzzer_pin = 22
+        main_buzzer_pin = 27
+        buzzer_pin = left_buzzer_pin
+        both_buzzer_flag = 0
 
         # Set the GPIO pin as output
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(left_buzzer_pin, GPIO.OUT)
         GPIO.setup(right_buzzer_pin, GPIO.OUT)
 
-        while True:
-                # Turn on BUZZER based on Midas ()
-                # Then 
-                GPIO.output(buzzer_pin, GPIO.HIGH) # Turn buzzer on
-                time.sleep(1)
-                GPIO.output(buzzer_pin, GPIO.LOW) # Turn buzzer off
-                time.sleep(1)
+        # Set up ultrasonic sensor
+        uart = serial.Serial("/dev/ttyS0", baudrate=9600, timeout=1) # Need to configure serial port! (Refer to links in IoT tab group)
+        us100 = adafruit_us100.US100(uart)
+        obj_dist = us100.distance
 
+        while True:
                 global new_response
                 if new_response ==True:
-                        global reponse
+                        global response
                         # ----------------------Process response from server---------------------------
                         # Parse the JSON file
                         # Message1 : image upload confirmation message
-                        # Message2 : command to turn on or off light, ouput by ML model
+                        # Message2 : command left or right, ouput by ML model
                         message = response.json()
                 
                 # Check the response status code, if 200 then proceed
                 if response.status_code == 200:
-                        print("ooooooooooooooooooooooooooooooooooooooooooo")
-                        print("Image uploaded successfully")
-                        print(message["message1"])
-                        print("Light On: ",message["message2"])
-                        print("Potentiometer: " ,mcp.read_adc(0))
-                        print("ooooooooooooooooooooooooooooooooooooooooooo")
+                        if message["message2"] == "left":
+                                buzzer_pin = left_buzzer_pin
+                        elif message["message2"] == "right":
+                                buzzer_pin = right_buzzer_pin
+                        elif message ["message2"] == "middle":
+                                both_buzzer_flag = 1
+                        if both_buzzer_flag = 1:
+                                GPIO.output(left_buzzer_pin, GPIO.HIGH)
+                                GPIO.output(right_buzzer_pin, GPIO.HIGH)
+                                time.sleep(0.5)
+                                GPIO.output(left_buzzer_pin, GPIO.LOW)
+                                GPIO.output(right_buzzer_pin, GPIO.LOW)
+                        else:
+                                GPIO.output(buzzer_pin, GPIO.HIGH)
+                                time.sleep(0.5)
+                                GPIO.output(buzzer_pin, GPIO.LOW)
+                        obj_dist = us100.distance
+                        print("Distance: ", obj_dist)
+                        if obj_dist <= 100:
+                                GPIO.output(main_buzzer_pin, GPIO.HIGH)
+                                time.sleep(0.5)
+                                GPIO.output(main_buzzer_pin, GPIO.LOW)
 
-                        # If potentiometer is turned to upper half, turn on Red LED
-                        # If potentiometer is turned to lower half, turn on Yellow LED
-                        if (mcp.read_adc(0) > 530):
-                                led = [11] #RED
-                        elif (mcp.read_adc(0) <= 500):
-                                led = [15] #YELLOW
-
-                        # If message2 = True turn on light, else turn off
-                        if message["message2"] and led == [11]:
-                                # Red LED
-                                GPIO.output(led, GPIO.HIGH)
-                                print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-                                print("Turning on Red LED")
-                                print("Potentiometer Channel 0: ", mcp.read_adc(0))
-                                print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-                        elif message["message2"] and led == [15]: 
-                                # Yellow LED
-                                GPIO.output(led, GPIO.HIGH)
-                                print("-------------------------------------------")
-                                print("Turning on Yellow LED")
-                                print("Potentiometer Channel 0: ", mcp.read_adc(0))
-                                print("-------------------------------------------")
-                        elif not message["message2"]:
-                                GPIO.output(led, GPIO.LOW)
                 else:
                         print("Error uploading image:", response.status_code)
-
+                        
                 new_response = False
 
 
@@ -91,10 +85,9 @@ url = "http://172.20.10.12:2020/send_image"
 #---------------------------------- Main --------------------------------------------#
 if __name__ == '__main__':
         #-------------------- Start a New Thread for led_pot() ------------------#
-        thread = threading.Thread(target=buzzer) # Spawn a thread to run led_pot() in a separate thread 
+        thread = threading.Thread(target=buzzer) # Spawn a thread to run buzzer() in a separate thread 
         thread.daemon = True # kill the thread as soon as the main program exit
         thread.start() # start the thread executing
-        #------------------------------------------------------------------------#
         #---------------- Capture and Send the First Image ----------------------#
         while True:
             # Capture the image -----------------------------------
