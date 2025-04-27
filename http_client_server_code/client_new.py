@@ -18,6 +18,9 @@ import RPi.GPIO as GPIO
 # This is necessary to initialize the global variable "response" to the correct type.
 #     "response" is used in http_msg() function, which is on a separte thread, and need 
 #     to be initialized as a global variable
+headers = {"Content-Type": "image/jpeg"}  # Indicate JPEG format
+response = requests.post(url, data=buffer.tobytes(), headers=headers)
+time.sleep(3) 
 new_response = True
 
 def buzzer():
